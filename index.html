@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+
+	<head>
+		<title>Socket.IO chat</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			
+			body {
+				font: 13px Helvetica, Arial;
+			}
+			
+			form {
+				background: #000;
+				padding: 3px;
+				position: fixed;
+				bottom: 0;
+				width: 100%;
+			}
+			
+			form input {
+				border: 0;
+				padding: 10px;
+				width: 90%;
+				margin-right: .5%;
+			}
+			
+			form button {
+				width: 9%;
+				background: rgb(130, 224, 255);
+				border: none;
+				padding: 10px;
+			}
+			
+			#messages {
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+			}
+			
+			#messages li {
+				padding: 5px 10px;
+			}
+			
+			#messages li:nth-child(odd) {
+				background: #eee;
+			}
+		</style>
+	</head>
+
+	<body>
+		<ul id="messages"></ul>
+		<form action="">
+			<input id="m" autocomplete="off" /><button>Send</button>
+		</form>
+	</body>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+	<script>
+		var user = "user" + Math.floor(Math.random() * 1000);
+		var socket = io();
+		//发送一个用户注册事件，在服务器端注册用户名
+		socket.emit('chat-reg', {
+			user: user
+		});
+		$('form').submit(function() {
+			socket.emit('chat-data', {
+				user: user,
+				msg: $('#m').val()
+			});
+			$('#m').val('');
+			return false;
+		});
+		//监听服务端发送的聊天信息，并将其显示在页面中
+		socket.on('chat-data', function(data) {
+			$('#messages').append($('<li>').text("[" + data.user + "]:" + data.msg));
+		});
+		//注册成功后，在控制台显示返回的信息
+		socket.on('chat-reg', function(data) {
+			$('#messages').append($('<div style="width: 100%; text-align: center;">').text("[" + data.user + "]进入"));
+			console.log(JSON.stringify(data));
+		});
+		
+		//用户退出
+		socket.on('out', function(data){
+			$('#messages').append($('<div style="width: 100%; text-align: center;">').text("[" + data + "]离开"));
+		})
+	</script>
+
+</html>
